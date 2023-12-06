@@ -44,6 +44,22 @@ function getRaceBadKerning(document) {
  * If time is an even number, then list has exactly one record in the middle, a duplicate needs to be snipped when putting the result back together.
  *
  * There is no data structure to operate on, values are calculated on the fly.
+ *
+ * Alternatively we can just use math:
+ *
+ * s = t * v
+ * distance = timeLeft * speed
+ *
+ * timeLeft  ->   time - holdTime
+ * speed     ->   holdTime
+ * distance  ->   record
+ *
+ * record = (time - holdTime) * holdTime
+ * record = time*holdTime - holdTime^2
+ *
+ * -holdTime^2 + time*holdTime -record = 0
+ * ax^2 + bx + c = 0
+ *
  */
 function puzzle(time, record) {
   const lastGoodIndex = Math.floor(time / 2);
@@ -83,6 +99,8 @@ function puzzle(time, record) {
 const document = readDocument("d06-input.txt");
 
 const races = getRaces(document);
+const raceBadKerning = getRaceBadKerning(document);
+
 const result1 = races.reduce((prevValue, currValue) => {
   const viable = puzzle(currValue.time, currValue.distance);
   console.log("viable", viable);
@@ -90,7 +108,5 @@ const result1 = races.reduce((prevValue, currValue) => {
 }, 1);
 console.log("result1", result1); // 840336 // 288
 
-const raceBadKerning = getRaceBadKerning(document);
-console.log(raceBadKerning);
 const result2 = puzzle(raceBadKerning.time, raceBadKerning.distance);
 console.log("result2", result2); // 41382569 // 71503
