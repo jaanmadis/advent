@@ -87,11 +87,8 @@ Here are the distances for each tile on that loop:
 23...
 Find the single giant loop starting at S. How many steps along the loop does it take to get from the starting position to the point farthest from the starting position?
 
-Your puzzle answer was 6956.
-
-The first half of this puzzle is complete! It provides one gold star: *
-
 --- Part Two ---
+
 You quickly reach the farthest point of the loop, but the animal never emerges. Maybe its nest is within the area enclosed by the loop?
 
 To determine whether it's even worth taking the time to search for such a nest, you should calculate how many tiles are contained within the loop. For example:
