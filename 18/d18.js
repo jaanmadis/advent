@@ -1,162 +1,92 @@
-// const fs = require("fs");
+const fs = require("fs");
 
-// function readInput(fileName) {
-//   return fs
-//     .readFileSync(fileName, { encoding: "utf8", flag: "r" })
-//     .split("\r\n");
-// }
+function readInput(fileName) {
+  return fs
+    .readFileSync(fileName, { encoding: "utf8", flag: "r" })
+    .split("\r\n");
+}
 
-// /**
-//  * Travel the map and record light's path.
-//  * Stop tracing when light goes off the edge of map.
-//  *
-// //  * If splitter is encountered and it isn't "active".
-//  * Then add two new light rays and add this splitter to list of "active" splitters.
-//  * And stop tracing this light ray.
-//  */
-// function travel(input, map, rays, index, splitters) {
-//   const ray = rays[index];
-//   while (
-//     0 <= ray.row &&
-//     ray.row < map.length &&
-//     0 <= ray.col &&
-//     ray.col < map[ray.row].length
-//   ) {
-//     map[ray.row][ray.col] = "#";
-//     switch (input[ray.row][ray.col]) {
-//       case "|": {
-//         if (ray.vc != 0) {
-//           if (
-//             !splitters.find(
-//               (splitter) => splitter.row === ray.row && splitter.col === ray.col
-//             )
-//           ) {
-//             rays.push({ row: ray.row - 1, col: ray.col, vr: -1, vc: 0 });
-//             rays.push({ row: ray.row + 1, col: ray.col, vr: 1, vc: 0 });
-//             splitters.push({ row: ray.row, col: ray.col });
-//           }
-//           return;
-//         }
-//         break;
-//       }
-//       case "-": {
-//         if (ray.vr != 0) {
-//           if (
-//             !splitters.find(
-//               (splitter) => splitter.row === ray.row && splitter.col === ray.col
-//             )
-//           ) {
-//             rays.push({ row: ray.row, col: ray.col - 1, vr: 0, vc: -1 });
-//             rays.push({ row: ray.row, col: ray.col + 1, vr: 0, vc: 1 });
-//             splitters.push({ row: ray.row, col: ray.col });
-//           }
-//           return;
-//         }
-//         break;
-//       }
-//       case "/": {
-//         if (ray.vr === 1) {
-//           /** Travel from top, turn left */
-//           ray.vr = 0;
-//           ray.vc = -1;
-//         } else if (ray.vr === -1) {
-//           /** Travel from bottom, turn right */
-//           ray.vr = 0;
-//           ray.vc = 1;
-//         } else if (ray.vc === 1) {
-//           /** Travel from left, turn top */
-//           ray.vr = -1;
-//           ray.vc = 0;
-//         } else if (ray.vc === -1) {
-//           /** Travel from right, turn bottom */
-//           ray.vr = 1;
-//           ray.vc = 0;
-//         }
-//         break;
-//       }
-//       case "\\": {
-//         if (ray.vr === 1) {
-//           /** Travel from top, turn right */
-//           ray.vr = 0;
-//           ray.vc = 1;
-//         } else if (ray.vr === -1) {
-//           /** Travel from bottom, turn left */
-//           ray.vr = 0;
-//           ray.vc = -1;
-//         } else if (ray.vc === 1) {
-//           /** Travel from left, turn bottom */
-//           ray.vr = 1;
-//           ray.vc = 0;
-//         } else if (ray.vc === -1) {
-//           /** Travel from right, turn top */
-//           ray.vr = -1;
-//           ray.vc = 0;
-//         }
-//         break;
-//       }
-//     }
-//     ray.row += ray.vr;
-//     ray.col += ray.vc;
-//   }
-// }
+function decodeForPart1(splits) {
+  const direction = splits[0];
+  const steps = +splits[1];
+  return { direction, steps };
+}
 
-// /**
-//  * Start with one light ray and travel until all light rays have gone off the map or hit an already active splitter.
-//  */
-// function solve(input, lightRay) {
-//   const lightMap = input.map((line) => new Array(line.length).fill("."));
-//   const lightRays = [];
-//   const activeSplitters = [];
+function decodeForPart2(splits) {
+  let direction = splits[2].substring(7, 8);
+  const steps = parseInt(splits[2].substring(2, 7), 16);
+  switch (direction) {
+    case "0": // right
+      direction = "R";
+      break;
+    case "1": // down
+      direction = "D";
+      break;
+    case "3": // up
+      direction = "U";
+      break;
+    case "2": // left
+      direction = "L";
+      break;
+  }
+  return { direction, steps };
+}
 
-//   lightRays.push(lightRay);
+/**
+ * The logic is visualized and documented in d18.png
+ */
 
-//   let lightIndex = 0;
-//   while (lightIndex < lightRays.length) {
-//     travel(input, lightMap, lightRays, lightIndex, activeSplitters);
-//     lightIndex++;
-//   }
+function puzzle(input, decoder) {
+  let Ag = 0;
+  const coords = [{ row: 0, col: 0 }];
+  input.forEach((line) => {
+    const splits = line.split(" ");
+    const { direction, steps } = decoder(splits);
+    const prevCoord = coords[coords.length - 1];
+    const nextCoord = { row: prevCoord.row, col: prevCoord.col };
+    Ag += steps;
+    switch (direction) {
+      case "R":
+        nextCoord.col += steps;
+        break;
+      case "D":
+        nextCoord.row += steps;
+        break;
+      case "U":
+        nextCoord.row -= steps;
+        break;
+      case "L":
+        nextCoord.col -= steps;
+        break;
+    }
+    coords.push(nextCoord);
+  });
+  console.log("Ag (trench):", Ag);
 
-//   const result = lightMap.reduce(
-//     (acc, next) => acc + (next.join("").match(/#/g) || []).length,
-//     0
-//   );
+  const Ap = shoelace(coords);
+  console.log("Ap (shoelace):", Ap);
 
-//   return result;
-// }
+  const Ao = Ag / 2 - 1;
+  console.log("Ap (overlap):", Ao);
 
-// /**
-//  * Solve for one light ray.
-//  */
-// function puzzle1(input) {
-//   const result = solve(input, { row: 0, col: 0, vr: 0, vc: 1 });
-//   console.log(result); // 7307
-// }
+  const A = Ag - Ao + Ap;
+  console.log("Puzzle Result:", A);
+}
 
-// /**
-//  * Brute force all possibilities.
-//  */
-// function puzzle2(input) {
-//   let result = 0;
-//   let entry;
+function shoelace(coords) {
+  let result = 0;
+  coords.forEach((coord, idx) => {
+    if (idx < coords.length - 1) {
+      result += coord.row * coords[idx + 1].col;
+    }
+    if (0 < idx) {
+      result -= coord.row * coords[idx - 1].col;
+    }
+  });
+  return Math.abs(result) / 2;
+}
 
-//   for (let i = 0; i < input.length; i++) {
-//     entry = { row: i, col: 0, vr: 0, vc: 1 };
-//     result = Math.max(result, solve(input, entry));
-//     entry = { row: i, col: input.length - 1, vr: 0, vc: -1 };
-//     result = Math.max(result, solve(input, entry));
-//   }
-
-//   for (let j = 0; j < input[0].length; j++) {
-//     entry = { row: 0, col: j, vr: 1, vc: 0 };
-//     result = Math.max(result, solve(input, entry));
-//     entry = { row: input[0].length - 1, col: j, vr: -1, vc: 0 };
-//     result = Math.max(result, solve(input, entry));
-//   }
-
-//   console.log(result); // 7635
-// }
-
-// // const input = readInput("d16-input-smol.txt");
-// const input = readInput("d16-input.txt");
-// puzzle1(input);
-// puzzle2(input);
+// const input = readInput("d18-input-smol.txt");
+const input = readInput("d18-input.txt");
+puzzle(input, decodeForPart1); // 62, 41019
+puzzle(input, decodeForPart2); // 952408144115, 96116995735219
