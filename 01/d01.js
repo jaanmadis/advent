@@ -1,3 +1,6 @@
+// Beware of things like EighTwo.
+// Is it "eight" or "two"?
+
 const fs = require("fs");
 
 function getItems(fileName) {
